@@ -1,42 +1,30 @@
-# Stage 1: Build Flask app
-FROM python:3.13.1 AS flask_builder
+#Use a base image with Linux
+FROM debian:bullseye-slim
 
-# Set the working directory for the Flask app build stage
-WORKDIR /app
+#Update package and install Python and Nginx
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    nginx \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the app files
-COPY ./app /app
+#Set up a workdir for app
+WORKDIR /app2
 
-# Install dependencies from the requirements file
-RUN pip install --no-cache-dir -r /app/req.txt
+#Copy application code to workdir
+COPY ./app /app2  
 
-# Stage 2: Setup Nginx and Flask together
-FROM nginx:stable-alpine AS final
+#Install Python dependencies 
+RUN pip3 install --no-cache-dir -r /app2/req.txt  
 
-# Remove the default Nginx site configuration
-RUN rm /etc/nginx/conf.d/default.conf
+#Remove the default Nginx site configuration
+RUN rm /etc/nginx/sites-enabled/default
 
-# Install Python3 and pip 
-RUN apk add --no-cache python3 py3-pip
+#Copy the Nginx config file 
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
-# Set the working directory for Flask app
-WORKDIR /app
-
-# Create a virtual environment for Python dependencies
-RUN python3 -m venv /app/venv
-
-# Copy the Flask app and dependencies from the flask_builder stage
-COPY --from=flask_builder /app /app
-
-# Install Python dependencies into the virtual environment
-RUN . /app/venv/bin/activate && pip install --no-cache-dir -r /app/req.txt
-
-# Copy the Nginx config (ensure it's correct)
-WORKDIR /etc/nginx
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expose necessary ports
+#Expose port 80 for Nginx which will proxy flask
 EXPOSE 80
 
-# Start both Flask and Nginx
-CMD ["sh", "-c", ". /app/venv/bin/activate && python3 /app/app.py & exec nginx -g 'daemon off;'"]
+#Command to start Flask and Nginx
+CMD ["sh", "-c", "python3 /app2/app.py & exec nginx -g 'daemon off;'"]
