@@ -1,0 +1,19 @@
+name: Build and Publish image to Docker Hub
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish_images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: build docker image image
+        run: |
+          docker build . --file Dockerfile -t bozios11/flask-nginxpara:latest
+      - name: push image to docker hub
+        run: |
+          docker login -u bozios11 -p ${{ secrets.DOCKER_HUB_TOKEN }}
+          docker push bozios11/flask-nginxpara:latest
