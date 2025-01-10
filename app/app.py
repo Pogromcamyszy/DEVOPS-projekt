@@ -18,6 +18,11 @@ def python():
 def docker():
     return 'Docker Ci is super cool'
 
+#last update testing CD process
+@app.route('/deploy')
+def deploy():
+   return 'I hope i will get 5 for this funny project'
+
 # Run the app on port 5000
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
