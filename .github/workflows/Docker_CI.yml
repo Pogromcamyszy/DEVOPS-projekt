@@ -1,0 +1,47 @@
+name: Docker Image CI
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build docker image
+      run: |
+        docker build . --file Dockerfile -t image13
+
+  #Install Trivy and scan the Docker image
+    - name: Scan Docker Image with Trivy
+      run: |
+          # Install Trivy
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+          # Scan the Docker image
+            ./bin/trivy image --format sarif --output trivy-report.sarif --exit-code 0 --quiet --severity CRITICAL,HIGH image13
+
+    - name: Upload SARIF Report to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: trivy-report.sarif
+
+    - name: Show docker images
+      run: docker images
+
+    - name: Run Docker container in detached mode
+      run: docker run -d --name my-container -p 8080:80 image13
+
+    - name: run ps
+      run: docker exec my-container ps aux
+
+    - name: Test curl connection to container over HTTP
+      run: |
+        docker exec my-container curl http://localhost:80
+    - name: Close container
+      run: docker stop my-container
