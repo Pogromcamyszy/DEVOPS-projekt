@@ -13,6 +13,11 @@ def hello_world():
 def python():
     return 'Python CI is very cool'
 
+#added rout for testin docker CI
+@app.route('/docker')
+def docker():
+    return 'Docker Ci is super cool'
+
 # Run the app on port 5000
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
