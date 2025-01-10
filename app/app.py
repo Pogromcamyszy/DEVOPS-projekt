@@ -3,10 +3,15 @@ from flask import Flask
 # Create a Flask app instance
 app = Flask(__name__)
 
-# Define a route 
+# Define a routes for application
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
+
+# added rout for testing python CI 
+@app.route('/python')
+def python():
+    return 'Python CI is very cool'
 
 # Run the app on port 5000
 if __name__ == '__main__':
